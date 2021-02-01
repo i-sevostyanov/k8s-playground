@@ -39,7 +39,7 @@ To check that the consumer and producer are working correctly you need to connec
 kubectl exec -i -t kafka-0 -- kafka-console-consumer --bootstrap-server localhost:9092 --topic output --from-beginning
 ```
 
-If the screen displays dates in RFC format with an interval of 5 seconds (by default), then everything works correctly:
+If the screen displays dates in RFC3339 format with an interval of 5 seconds (by default), then everything works correctly:
 ```shell
 2021-01-01T08:49:26Z
 2021-01-01T08:49:31Z
@@ -59,6 +59,9 @@ kubectl port-forward `kubectl get pods -l app=grafana -n monitoring -o name` --a
 ```
 After you can access grafana by going to the following address: [http://192.168.50.13:3000](http://192.168.50.13:3000).
 In addition to Kubernetes dashboards, you will find a dashboard with consumer and producer metrics, as well as a Kafka dashboard.
+
+Login: admin
+Password: admin
 
 #### Prometheus
 Same for Prometheus:
