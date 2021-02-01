@@ -1,12 +1,13 @@
 [![Latest Release](https://img.shields.io/github/release/i-sevostyanov/k8s-playground.svg)](https://github.com/i-sevostyanov/k8s-playground/releases/latest)
 ![CI](https://github.com/i-sevostyanov/k8s-playground/workflows/CI/badge.svg)
 [![Go Report Card](https://goreportcard.com/badge/github.com/i-sevostyanov/k8s-playground)](https://goreportcard.com/report/github.com/i-sevostyanov/k8s-playground)
-[![GitHub license](https://img.shields.io/github/license/i-sevostyanov/k8s-playground)](https://github.com/i-sevostyanov/k8s-playground/blob/main/LICENSE)
 [![codecov](https://codecov.io/gh/i-sevostyanov/k8s-playground/branch/main/graph/badge.svg?token=JEFLNDSIY5)](https://codecov.io/gh/i-sevostyanov/k8s-playground)
+[![GitHub license](https://img.shields.io/github/license/i-sevostyanov/k8s-playground)](https://github.com/i-sevostyanov/k8s-playground/blob/main/LICENSE)
 
-# Kubernetes Playground
-This project contains a `Vagrantfile` and associated `Ansible` playbook to provisioning a 3 nodes 
-Kubernetes cluster using `VirtualBox` and `Ubuntu 18.04`.
+## Kubernetes Playground
+This project contains a `Vagrantfile` and associated `Ansible` playbook to provisioning a 3 nodes
+Kubernetes cluster using `VirtualBox` and `Ubuntu 18.04`. Also, it contains a `Ansible` playbook to provisioning `management` machine
+which deploys ZooKeeper, Kafka, Prometheus Operator, Kafka Exporter and two golang applications (Consumer and Producer).
 
 ### Attention
 Ansible playbook is not idempotent, so if you run it twice error happens.
@@ -17,7 +18,32 @@ You need the following installed to use this playground:
 - `VirtualBox`, tested with Version 6.1
 - `Internet access`, this playground pulls Vagrant boxes from the Internet as well as installs Ubuntu application packages from the Internet.
 
-### Bringing Up The cluster
+### Structure
+```
+k8s-playground
+├─ cmd                
+│  ├─ consumer         // Main package for consumer
+│  ├─ producer         // Main package for producer
+├─ deployment          // k8s manifests for consumer and producer 
+├─ internal            // Internal packages for applications (by golang convention) 
+│  ├─ bussiness        // Business logic of applications
+│  ├─ infrastructure   // Application infrastructure code
+├─ vagrant             // Contains a Vagrantfile
+│  ├─ provision        // Contains a Ansible playbooks for k8s cluster and management machine
+│  |  ├─ manifests     // k8s manifests for kafka, zookepeer, prometheus, etc
+```
+
+### Producer & Consumer
+
+#### Business logic
+`Producer` every 5 seconds (value by default) publishing a current timestamp into `input` topic.
+
+`Consumer` reads timestamp from `input` topic, converts it into date in RFC3339 format, and publishes it into `output` topic.
+
+#### CI/CD
+At every commit in GitHub Actions starts code linting, tests, and code coverage. And, when creating a release, a docker image is built.
+
+### Bringing up the cluster
 To bring up the cluster, clone this repository to a working directory.
 
 ```
