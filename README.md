@@ -78,3 +78,4 @@ Prometheus web interface will be available at [http://192.168.50.13:9090](http:/
 - [ ] Testing for Ansible Playbooks ([Molecule](https://molecule.readthedocs.io/en/latest/index.html))
 - [ ] Parametrize kubernetes manifests with [helm](https://helm.sh) or [kustomize](https://kustomize.io)
 - [ ] Collect metrics from JMX
+- [ ] Add more metrics for consumer and producer 
