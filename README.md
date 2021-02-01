@@ -1,3 +1,9 @@
+[![Latest Release](https://img.shields.io/github/release/i-sevostyanov/k8s-playground.svg)](https://github.com/i-sevostyanov/k8s-playground/releases/latest)
+![CI](https://github.com/i-sevostyanov/k8s-playground/workflows/CI/badge.svg)
+[![Go Report Card](https://goreportcard.com/badge/github.com/i-sevostyanov/k8s-playground)](https://goreportcard.com/report/github.com/i-sevostyanov/k8s-playground)
+[![GitHub license](https://img.shields.io/github/license/i-sevostyanov/k8s-playground)](https://github.com/i-sevostyanov/k8s-playground/blob/main/LICENSE)
+[![codecov](https://codecov.io/gh/i-sevostyanov/k8s-playground/branch/main/graph/badge.svg?token=JEFLNDSIY5)](https://codecov.io/gh/i-sevostyanov/k8s-playground)
+
 # Kubernetes Playground
 This project contains a `Vagrantfile` and associated `Ansible` playbook to provisioning a 3 nodes 
 Kubernetes cluster using `VirtualBox` and `Ubuntu 18.04`.
