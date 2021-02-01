@@ -41,7 +41,8 @@ k8s-playground
 `Consumer` reads timestamp from `input` topic, converts it into date in RFC3339 format, and publishes it into `output` topic.
 
 #### CI/CD
-At every commit in GitHub Actions starts code linting, tests, and code coverage. And, when creating a release, a docker image is built.
+At every commit in GitHub Actions starts code linting, tests, and code coverage. 
+And, when creating a release, a docker image is built and push it into GitHub Container Registry. 
 
 ### Bringing up the cluster
 To bring up the cluster, clone this repository to a working directory.
