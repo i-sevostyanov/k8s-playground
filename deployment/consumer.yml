@@ -1,0 +1,63 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: consumer
+  namespace: default
+  labels:
+    app: consumer
+spec:
+  type: ClusterIP
+  ports:
+    - name: metrics
+      port: 8080
+      targetPort: metrics
+      protocol: TCP
+  selector:
+    app: consumer
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: "consumer"
+  labels:
+    app: "consumer"
+spec:
+  jobLabel: jobLabel
+  selector:
+    matchLabels:
+      app: "consumer"
+  endpoints:
+    - port: metrics
+      interval: "30s"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: consumer-deployment
+  labels:
+    app: consumer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: consumer
+  template:
+    metadata:
+      labels:
+        app: consumer
+    spec:
+      containers:
+        - name: consumer
+          image: ghcr.io/i-sevostyanov/k8s-playground:consumer-v0.1.0
+          ports:
+            - name: metrics
+              containerPort: 8080
+          env:
+            - name: KAFKA_ADDR
+              value: "kafka.default.svc.cluster.local:9092"
+            - name: INPUT_TOPIC
+              value: "input"
+            - name: OUTPUT_TOPIC
+              value: "output"
+            - name: LISTEN
+              value: ":8080"

@@ -1,0 +1,116 @@
+---
+- hosts: all
+  become: true
+  tasks:
+    - name: Install packages that allow apt to be used over HTTPS
+      apt:
+        name: "{{ packages }}"
+        state: present
+        update_cache: yes
+      vars:
+        packages:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - gnupg-agent
+          - software-properties-common
+          - python-pip
+          - unzip
+
+    - name: Add an apt signing key for Docker
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+
+    - name: Add apt repository for stable version
+      apt_repository:
+        repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu xenial stable
+        state: present
+
+    - name: Install docker and its dependecies
+      apt:
+        name: "{{ packages }}"
+        state: present
+        update_cache: yes
+      vars:
+        packages:
+          - docker-ce
+          - docker-ce-cli
+      notify:
+        - docker status
+
+    - name: Add vagrant user to docker group
+      user:
+        name: vagrant
+        group: docker
+
+    - name: Add an apt signing key for Kubernetes
+      apt_key:
+        url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+        state: present
+
+    - name: Adding apt repository for Kubernetes
+      apt_repository:
+        repo: deb https://apt.kubernetes.io/ kubernetes-xenial main
+        state: present
+        filename: kubernetes.list
+
+    - name: Install Kubernetes binaries
+      apt:
+        name: kubectl
+        state: present
+        update_cache: yes
+
+    - name: Create a directory if it does not exist
+      file:
+        path: /home/vagrant/.kube
+        state: directory
+        mode: '0755'
+
+    - name: Copy the kube config to server location
+      copy: src=kube-config dest=/home/vagrant/.kube/config mode=0777
+
+    - name: Download and unzip repository
+      command: "{{ item }}"
+      with_items:
+        - curl -O -L https://github.com/i-sevostyanov/k8s-playground/archive/v{{ version }}.zip
+        - unzip v{{ version }}.zip
+
+    - name: Launch Zookeeper server
+      become: false
+      command: kubectl apply -f k8s-playground-{{ version }}/vagrant/provision/manifests/zookeeper.yml
+
+    - name: Launch Kafka server
+      become: false
+      command: kubectl apply -f k8s-playground-{{ version }}/vagrant/provision/manifests/kafka.yml
+
+    - name: Create Kafka topics
+      command: "{{ item }}"
+      become: false
+      with_items:
+        - sleep 100
+        - kubectl exec -i -t kafka-0 -- kafka-topics --create --zookeeper zookeeper.default.svc.cluster.local:2181 --replication-factor 1 --partitions 1 --if-not-exists --topic input
+        - kubectl exec -i -t kafka-0 -- kafka-topics --create --zookeeper zookeeper.default.svc.cluster.local:2181 --replication-factor 1 --partitions 1 --if-not-exists --topic output
+
+    - name: Setup prometheus-operator
+      command: "{{ item }}"
+      become: false
+      with_items:
+        - kubectl create -f k8s-playground-{{ version }}/vagrant/provision/manifests/prometheus/setup
+        - kubectl create -f k8s-playground-{{ version }}/vagrant/provision/manifests/prometheus
+
+    - name: Launch Kafka Exporter
+      become: false
+      command: kubectl apply -f k8s-playground-{{ version }}/vagrant/provision/manifests/kafka_exporter.yml
+
+    - name: Launch Producer application
+      become: false
+      command: kubectl apply -f k8s-playground-{{ version }}/deployment/producer.yml
+
+    - name: Launch Consumer application
+      become: false
+      command: kubectl apply -f k8s-playground-{{ version }}/deployment/consumer.yml
+
+  handlers:
+    - name: docker status
+      service: name=docker state=started

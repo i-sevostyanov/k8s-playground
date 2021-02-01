@@ -1,0 +1,42 @@
+---
+name: "Release a tag"
+on:
+  push:
+    tags:
+      - v*
+jobs:
+  docker-release:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        target:
+          - App: consumer
+          - App: producer
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.15
+
+      - name: Prepare
+        id: prepare
+        run: |
+          TAG=${GITHUB_REF#refs/tags/}
+          echo ::set-output name=tag_name::${TAG}
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Login into GitHub Container Registry
+        run: echo ${{ secrets.CR_PAT }} | docker login ghcr.io -u $GITHUB_ACTOR --password-stdin
+
+      - name: Build Docker image
+        run: docker build . --tag ghcr.io/i-sevostyanov/k8s-playground:${{ matrix.target.App }}-${{ steps.prepare.outputs.tag_name }} --build-arg APP=${{ matrix.target.App }}
+
+      - name: Push image to registry
+        run: docker push ghcr.io/i-sevostyanov/k8s-playground:${{ matrix.target.App }}-${{ steps.prepare.outputs.tag_name }}

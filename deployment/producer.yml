@@ -1,0 +1,63 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: producer
+  namespace: default
+  labels:
+    app: producer
+spec:
+  type: ClusterIP
+  ports:
+    - name: metrics
+      port: 8080
+      targetPort: metrics
+      protocol: TCP
+  selector:
+    app: producer
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: "producer"
+  labels:
+    app: "producer"
+spec:
+  jobLabel: jobLabel
+  selector:
+    matchLabels:
+      app: "producer"
+  endpoints:
+    - port: metrics
+      interval: "30s"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: producer-deployment
+  labels:
+    app: producer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: producer
+  template:
+    metadata:
+      labels:
+        app: producer
+    spec:
+      containers:
+        - name: producer
+          image: ghcr.io/i-sevostyanov/k8s-playground:producer-v0.1.0
+          ports:
+            - name: metrics
+              containerPort: 8080
+          env:
+            - name: KAFKA_ADDR
+              value: "kafka.default.svc.cluster.local:9092"
+            - name: TOPIC
+              value: "input"
+            - name: INTERVAL
+              value: "5s"
+            - name: LISTEN
+              value: ":8080"

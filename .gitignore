@@ -1,0 +1,3 @@
+vagrant/.vagrant
+vagrant/provision/join-command
+vagrant/provision/kube-config
