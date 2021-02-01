@@ -5,18 +5,16 @@
 [![GitHub license](https://img.shields.io/github/license/i-sevostyanov/k8s-playground)](https://github.com/i-sevostyanov/k8s-playground/blob/main/LICENSE)
 
 ## Kubernetes Playground
-This project contains a `Vagrantfile` and associated `Ansible` playbook to provisioning a 3 nodes
-Kubernetes cluster using `VirtualBox` and `Ubuntu 18.04`. Also, it contains a `Ansible` playbook to provisioning `management` machine
-which deploys ZooKeeper, Kafka, Prometheus Operator, Kafka Exporter and two golang applications (Consumer and Producer).
+This project contains a ready-to-use Kubernetes playground. It uses Vagrant and Ansible to start k8s on 3 nodes and deploy
+ZooKeeper, Kafka, Prometheus Operator, Kafka Exporter, and two golang applications (Consumer and Producer).
 
 ### Attention
-Ansible playbook is not idempotent, so if you run it twice error happens.
+Ansible playbook is not idempotent, please consider running it only once. The next attempts will fail.
 
 ### Prerequisites
 You need the following installed to use this playground:
 - `Vagrant`, tested with version 2.2.14
 - `VirtualBox`, tested with Version 6.1
-- `Internet access`, this playground pulls Vagrant boxes from the Internet as well as installs Ubuntu application packages from the Internet.
 
 ### Structure
 ```
@@ -36,13 +34,13 @@ k8s-playground
 ### Producer & Consumer
 
 #### Business logic
-`Producer` every 5 seconds (value by default) publishing a current timestamp into `input` topic.
+`Producer` publishes a current timestamp into `input` topic every 5 seconds (value by default).
 
-`Consumer` reads timestamp from `input` topic, converts it into date in RFC3339 format, and publishes it into `output` topic.
+`Consumer` reads timestamp from `input` topic, converts it into date in RFC3339 format then publishes it into `output` topic.
 
 #### CI/CD
-At every commit in GitHub Actions starts code linting, tests, and code coverage. 
-And, when creating a release, a docker image is built and push it into GitHub Container Registry. 
+Github Actions are invoked on every commit to handle code linting, tests, and code coverage. The release creation triggers build action. 
+It builds docker image and pushes it to the Github Container Registry. 
 
 ### Bringing up the cluster
 To bring up the cluster, clone this repository to a working directory.
@@ -51,14 +49,14 @@ To bring up the cluster, clone this repository to a working directory.
 git clone https://github.com/i-sevostyanov/k8s-playground.git
 ```
 
-Change into the working directory and `vagrant up`
+Change into the working directory and run `vagrant up` command:
 
 ```
 cd k8s-playground/vagrant
 vagrant up
 ```
 
-After the `vagrant up` is complete, you can connect to `management` machine and wait few minutes until all pods not started.
+After the command is complete, you can connect to the `management` machine and wait for a few minutes until all pods are started. 
 You can check the status by running the following commands:
 
 ```
@@ -67,7 +65,7 @@ kubectl get pods -o wide -A
 ```
 
 ### Everything is okay?
-To check that the consumer and producer are working correctly you need to connect to the `management` machine and execute the following command:
+To check that the consumer and producer are working properly you need to connect to the `management` machine and execute the following command:
 ```shell
 kubectl exec -i -t kafka-0 -- kafka-console-consumer --bootstrap-server localhost:9092 --topic output --from-beginning
 ```
@@ -85,12 +83,12 @@ If the screen displays dates in RFC3339 format with an interval of 5 seconds (by
 ### Monitoring
 
 #### Grafana
-To access the grafana dashboards, you need to do port forwarding as follows:
+To access the grafana dashboards, you need to set up port forwarding as follows:
 ```shell
 vagrant ssh management
 kubectl port-forward `kubectl get pods -l app=grafana -n monitoring -o name` --address 0.0.0.0 3000:3000 -n monitoring &
 ```
-After you can access grafana by going to the following address: [http://192.168.50.13:3000](http://192.168.50.13:3000).
+After that you can access grafana by going to the following address: [http://192.168.50.13:3000](http://192.168.50.13:3000).
 In addition to Kubernetes dashboards, you will find a dashboard with consumer and producer metrics, as well as a Kafka dashboard.
 
 Login: admin
