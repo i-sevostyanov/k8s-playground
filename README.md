@@ -21,14 +21,14 @@ You need the following installed to use this playground:
 k8s-playground
 ├─ cmd                
 │  ├─ consumer         // Main package for consumer
-│  ├─ producer         // Main package for producer
+│  └─ producer         // Main package for producer
 ├─ deployment          // k8s manifests for consumer and producer 
 ├─ internal            // Internal packages for applications (by golang convention) 
 │  ├─ bussiness        // Business logic of applications
-│  ├─ infrastructure   // Application infrastructure code
-├─ vagrant             // Contains a Vagrantfile
-│  ├─ provision        // Contains a Ansible playbooks for k8s cluster and management machine
-│  |  ├─ manifests     // k8s manifests for kafka, zookepeer, prometheus, etc
+│  └─ infrastructure   // Application infrastructure code
+└─ vagrant             // Contains a Vagrantfile
+   └─ provision        // Contains a Ansible playbooks for k8s cluster and management machine
+      └─ manifests     // k8s manifests for kafka, zookepeer, prometheus, etc
 ```
 
 ### Producer & Consumer
