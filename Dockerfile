@@ -1,4 +1,4 @@
-FROM golang:1.15.7-alpine3.13 AS build-env
+FROM golang:1.20.1-alpine3.17 AS build-env
 
 # Get application name from args
 ARG APP
@@ -22,7 +22,7 @@ RUN go mod download && go mod verify
 RUN go build -o /build/eny -ldflags "-s -w" cmd/$APP/*
 
 # Put everything together in a clean image
-FROM alpine:3.13
+FROM alpine:3.17
 
 # Copy binary into PATH
 COPY --from=build-env /build/eny /usr/local/bin/evy
