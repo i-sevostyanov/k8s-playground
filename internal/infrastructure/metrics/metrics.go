@@ -8,13 +8,21 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
+const (
+	defaultServerTimeout         = 30 * time.Second
+	defaultServerShutdownTimeout = 10 * time.Second
+)
+
 func Listen(ctx context.Context, address string) error {
 	handler := http.NewServeMux()
 	handler.Handle("/metrics", promhttp.Handler())
 
 	server := &http.Server{
-		Addr:    address,
-		Handler: handler,
+		Addr:         address,
+		Handler:      handler,
+		IdleTimeout:  time.Minute,
+		ReadTimeout:  defaultServerTimeout,
+		WriteTimeout: defaultServerTimeout,
 	}
 
 	errCh := make(chan error, 1)
@@ -23,11 +31,11 @@ func Listen(ctx context.Context, address string) error {
 		errCh <- server.ListenAndServe()
 	}()
 
-	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer shutdownCancel()
-
 	select {
 	case <-ctx.Done():
+		shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), defaultServerShutdownTimeout)
+		defer shutdownCancel()
+
 		return server.Shutdown(shutdownCtx)
 	case err := <-errCh:
 		return err
